@@ -22,7 +22,3 @@ aynz-skills/
 - Each skill entrypoint is `SKILL.md`
 - Frontmatter should include: `name`, `description`, `version`
 - Optional `SKILL.override.md` for repo-level constraints
-
-## License
-
-MIT (you can replace with your preferred license)
