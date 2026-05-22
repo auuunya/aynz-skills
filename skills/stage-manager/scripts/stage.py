@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Stage-Manager 应用协调层：装配上下文并暴露稳定入口。"""
+"""Stage-Manager Application orchestration layer: assembles context and exposes stable entrypoints."""
 
 import argparse
 import sys
@@ -119,7 +119,7 @@ from core.validate import (
 
 
 def _build_indexes_ctx():
-    """构建索引维护函数所需的上下文。"""
+    """Build context required by index maintenance helpers."""
     return SimpleNamespace(
         cfg=cfg,
         ensure_structure=ensure_structure,
@@ -139,29 +139,29 @@ def _build_indexes_ctx():
 
 
 def rewrite_stages_index(current_stage: str | None = None):
-    """组装索引上下文并委派重写 `STAGES.md`。"""
+    """Assemble index context and delegate rewriting `STAGES.md`."""
     return rewrite_stages_index_impl(_build_indexes_ctx(), current_stage)
 
 
 def update_heartbeat():
-    """组装统计上下文并委派刷新 `STAGES.md` heartbeat。"""
+    """Assemble stats context and delegate heartbeat refresh in `STAGES.md`."""
     return update_heartbeat_impl(_build_indexes_ctx())
 
 
 def update_adr_index(clean_msg: str, stage_file: str, is_archive: bool = False) -> str:
-    """组装 ADR 索引上下文并委派写入。"""
+    """Assemble ADR index context and delegate write."""
     return update_adr_index_impl(_build_indexes_ctx(), clean_msg, stage_file, is_archive)
 
 
 def update_session_summary(text: str):
-    """组装会话索引上下文并委派写入快照。"""
+    """Assemble session index context and delegate snapshot write."""
     ctx = _build_indexes_ctx()
     ctx.update_heartbeat = update_heartbeat
     return update_session_summary_impl(ctx, text)
 
 
 def _build_validate_ctx():
-    """构建阶段文档校验所需的上下文。"""
+    """Build context required for stage document validation."""
     return SimpleNamespace(
         read_text=read_text,
         parse_frontmatter=parse_frontmatter,
@@ -179,24 +179,24 @@ def _build_validate_ctx():
 
 
 def check_p0_completed(filepath: str):
-    """组装校验依赖并委派 P0 完成性检查。"""
+    """Assemble validation deps and delegate P0 completion checks."""
     ctx = SimpleNamespace(parse_task_line=parse_task_line, check_section_items=check_section_items)
     return check_p0_completed_impl(ctx, filepath)
 
 
 def check_dod_completed(filepath: str):
-    """组装校验依赖并委派 DoD 完成性检查。"""
+    """Assemble validation deps and delegate DoD completion checks."""
     return check_dod_completed_impl(SimpleNamespace(check_section_items=check_section_items), filepath)
 
 
 def has_summary_content(filepath: str) -> bool:
-    """判断阶段总结 section 是否已有真实内容。"""
+    """Check whether stage summary section already contains real content."""
     ctx = SimpleNamespace(read_text=read_text, find_section_block=find_section_block)
     return has_summary_content_impl(ctx, filepath)
 
 
 def check_implementation_evidence(filepath: str):
-    """检查实施型阶段是否引用了真实 evidence。"""
+    """Check whether implementation stage references real evidence."""
     ctx = SimpleNamespace(
         read_text=read_text,
         infer_stage_type=infer_stage_type,
@@ -208,12 +208,12 @@ def check_implementation_evidence(filepath: str):
 
 
 def validate_stage_document(filepath: str):
-    """组装校验上下文并委派阶段文档完整校验。"""
+    """Assemble validation context and delegate full stage document validation."""
     return validate_stage_document_impl(_build_validate_ctx(), filepath)
 
 
 def _build_dashboard_ctx():
-    """构建 dashboard 展示所需的上下文。"""
+    """Build context required for dashboard rendering."""
     return SimpleNamespace(
         cfg=cfg,
         resolve_stage_file=resolve_stage_file,
@@ -231,12 +231,12 @@ def _build_dashboard_ctx():
 
 
 def render_dashboard(mode: str = "full", file_target: str | None = None) -> bool:
-    """统一委派 dashboard 渲染，并保留刷新 heartbeat 的语义。"""
+    """Delegate dashboard rendering with heartbeat refresh semantics preserved."""
     return render_dashboard_impl(_build_dashboard_ctx(), mode, file_target)
 
 
 def _build_commands_ctx():
-    """构建独立命令实现所需的上下文。"""
+    """Build context required for standalone command implementations."""
     return SimpleNamespace(
         cfg=cfg,
         template_path=TEMPLATE_PATH,
@@ -260,37 +260,37 @@ def _build_commands_ctx():
 
 
 def init_stage(name: str) -> bool:
-    """组装初始化上下文并委派创建新阶段。"""
+    """Assemble init context and delegate stage creation."""
     return init_stage_impl(_build_commands_ctx(), name)
 
 
 def check_stage_name_exists(slug: str):
-    """组装命令上下文并检查阶段名是否已存在。"""
+    """Assemble command context and check whether stage name already exists."""
     return check_stage_name_exists_impl(_build_commands_ctx(), slug)
 
 
 def check_item(item_id: str, uncheck: bool = False, file_target: str | None = None) -> bool:
-    """组装命令上下文并切换 TASK 或 AC 的勾选状态。"""
+    """Assemble command context and toggle TASK/AC checkbox state."""
     return check_item_impl(_build_commands_ctx(), item_id, uncheck, file_target)
 
 
 def switch_stage(target: str) -> bool:
-    """组装命令上下文并切换当前活跃阶段。"""
+    """Assemble command context and switch current active stage."""
     return switch_stage_impl(_build_commands_ctx(), target)
 
 
 def route_backlog(tasks, stage_file: str, category_marker: str):
-    """组装命令上下文并回流 backlog 条目。"""
+    """Assemble command context and route backlog items back."""
     return route_backlog_impl(_build_commands_ctx(), tasks, stage_file, category_marker)
 
 
 def intake_backlog(keyword: str, dry_run: bool = False, file_target: str | None = None) -> bool:
-    """组装命令上下文并执行 backlog 认领。"""
+    """Assemble command context and execute backlog intake."""
     return intake_backlog_impl(_build_commands_ctx(), keyword, dry_run, file_target)
 
 
 def _build_ops_ctx():
-    """构建日志、总结与归档流程所需的上下文。"""
+    """Build context required for log/summary/archive flow."""
     return SimpleNamespace(
         cfg=cfg,
         allowed_log_status=ALLOWED_LOG_STATUS,
@@ -325,31 +325,31 @@ def _build_ops_ctx():
 def sync_log(
     message: str,
     task_name: str | None = None,
-    status: str = "进行中",
+    status: str = "in-progress",
     next_action: str | None = None,
     blocked_by: str | None = None,
     file_target: str | None = None,
 ) -> bool:
-    """组装日志上下文并委派写入阶段日志与 ADR 存根。"""
+    """Assemble log context and delegate stage log + ADR stub writes."""
     return sync_log_impl(_build_ops_ctx(), message, task_name, status, next_action, blocked_by, file_target)
 
 
 def append_stage_summary(
     name: str, milestone_goal: str, core_results, change_audit: str, tech_debt: str, file_target: str | None = None
 ) -> bool:
-    """组装总结上下文并委派写入阶段总结。"""
+    """Assemble summary context and delegate stage summary writes."""
     return append_stage_summary_impl(
         _build_ops_ctx(), name, milestone_goal, core_results, change_audit, tech_debt, file_target
     )
 
 
 def archive_stage(force: bool = False, dry_run: bool = False, file_target: str | None = None) -> bool:
-    """组装归档上下文并委派执行归档流程。"""
+    """Assemble archive context and delegate archive flow execution."""
     return archive_stage_impl(_build_ops_ctx(), force, dry_run, file_target)
 
 
 def _build_cli_ctx():
-    """构建 CLI 分发器所需的顶层上下文。"""
+    """Build top-level context required by the CLI dispatcher."""
     return SimpleNamespace(
         cfg=cfg,
         template_path=TEMPLATE_PATH,
@@ -381,11 +381,11 @@ def _build_cli_ctx():
 
 
 def main():
-    """初始化运行期上下文、解析 CLI，并执行对应命令。"""
+    """Initialize runtime context, parse CLI, and execute target command."""
     base_parser = argparse.ArgumentParser(add_help=False)
-    base_parser.add_argument("--root", help="指定项目根目录")
+    base_parser.add_argument("--root", help="Specify project root path")
     base_parser.add_argument(
-        "--json", action="store_true", help="输出 JSON 格式（适用于 bootstrap/status/validate/check）"
+        "--json", action="store_true", help="Output JSON format (for bootstrap/status/validate/check)"
     )
     temp_args, _ = base_parser.parse_known_args()
 

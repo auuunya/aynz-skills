@@ -1,1 +1,1 @@
-"""Stage-Manager 内部实现包。"""
+"""Stage-Manager internal implementation package."""

@@ -1,4 +1,4 @@
-# 仓库相关
+# Repository artifacts
 STAGES.md
 BACKLOGS.md
 ADRS.md
@@ -9,12 +9,12 @@ agents/
 
 !templates/BACKLOGS.md
 
-# Python 缓存与编译文件
+# Python cache/compiled files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# 系统文件
+# System files
 .DS_Store
 .Thumbs.db
 .vscode/
@@ -23,6 +23,6 @@ __pycache__/
 .venv/
 env/
 
-# 运行记录文件
+# Runtime logs
 .log
 *.log

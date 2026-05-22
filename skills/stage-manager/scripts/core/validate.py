@@ -5,7 +5,7 @@ import re
 def check_p0_completed(ctx, filepath):
     """返回阶段文档中 P0 任务是否已全部完成，以及未完成条目。"""
     def _is_unchecked_p0(line: str) -> bool:
-        """判断任务行是否表示一个尚未勾选的 P0 任务。"""
+        """判断任务行是否表示一个尚未checked的 P0 任务。"""
         parsed = ctx.parse_task_line(line)
         return parsed is not None and parsed["priority"] == "P0" and not parsed["checked"]
 
@@ -13,7 +13,7 @@ def check_p0_completed(ctx, filepath):
 
 
 def check_dod_completed(ctx, filepath):
-    """返回验收标准是否已全部勾选，以及未完成条目。"""
+    """返回验收标准是否已全部checked，以及未完成条目。"""
     return ctx.check_section_items(filepath, 5, lambda line: re.match(r"^\s*-\s*\[ \]", line) is not None)
 
 
@@ -22,7 +22,7 @@ def has_summary_content(ctx, filepath):
     if not os.path.exists(filepath):
         return False
     sec = ctx.find_section_block(ctx.read_text(filepath), 9)
-    return sec is not None and not re.fullmatch(r"\s*-\s*暂无\s*", sec[3].strip())
+    return sec is not None and not re.fullmatch(r"\s*-\s*None\s*", sec[3].strip())
 
 
 def check_implementation_evidence(ctx, filepath):
@@ -91,7 +91,7 @@ def validate_stage_document(ctx, filepath):
             continue
         lines = re.findall(r"^\s*-\s*\[[ xX]\].*$", sec[3], re.M)
         if not lines:
-            warns.append(f"{'任务拆解' if sec_no == 4 else '验收标准'} section 中暂无 checklist")
+            warns.append(f"{'任务拆解' if sec_no == 4 else '验收标准'} section 中None checklist")
         for line in lines:
             errors.extend(validator(line))
             parsed = parser(line)
@@ -131,7 +131,7 @@ def validate_stage_document(ctx, filepath):
 
     for sec_no, label in [(7, "进度日志"), (9, "阶段总结")]:
         sec = ctx.find_section_block(content, sec_no)
-        if sec and re.fullmatch(r"\s*-\s*暂无\s*", sec[3].strip()):
+        if sec and re.fullmatch(r"\s*-\s*None\s*", sec[3].strip()):
             warns.append(f"{label}为空")
 
     if ctx.infer_stage_type(content) == "implementation":

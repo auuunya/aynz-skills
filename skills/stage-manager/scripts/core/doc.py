@@ -128,22 +128,22 @@ def replace_section_body(content: str, section_no: int, new_body: str) -> str:
 
 
 def prepend_to_section_body(content: str, section_no: int, block_text: str, remove_placeholder_tbd: bool = False) -> str:
-    """向指定 section 头部插入正文，可选移除 `- 暂无` 占位。"""
+    """向指定 section 头部插入正文，可选移除 `- None` 占位。"""
     section = find_section_block(content, section_no)
     if not section:
         return content
     start, end, header, body = section
     body_text = body.strip("\n")
     if remove_placeholder_tbd:
-        body_text = re.sub(r"^\s*-\s*暂无\s*$", "", body_text, flags=re.M).strip("\n")
+        body_text = re.sub(r"^\s*-\s*None\s*$", "", body_text, flags=re.M).strip("\n")
     parts = [part for part in [block_text.strip("\n"), body_text.strip("\n")] if part.strip()]
-    new_body = "\n\n".join(parts) if parts else "- 暂无"
+    new_body = "\n\n".join(parts) if parts else "- None"
     prefix = _get_anchor_prefix(content[start:end], section_no)
     return content[:start] + prefix + header + "\n\n" + new_body + "\n" + content[end:]
 
 
 def _extract_stage_num(filename: str) -> int:
-    """从阶段文件名中提取数字编号，用于稳定排序。"""
+    """从Stage file名中提取数字编号，用于稳定排序。"""
     match = re.search(r"stage-(\d+)-", filename)
     return int(match.group(1)) if match else 999999
 
@@ -156,7 +156,7 @@ def list_md_files(directory: str) -> List[str]:
 
 
 def get_latest_stage_info() -> Tuple[Optional[str], str]:
-    """返回当前阶段文件名，以及现有活跃阶段中的最大编号。"""
+    """返回当前Stage file名，以及现有Active stage中的最大编号。"""
     ensure_structure()
     active_files = list_md_files(cfg.stages_exec_dir)
     max_num = f"{max((_extract_stage_num(filename) for filename in active_files), default=0):03d}"
@@ -168,7 +168,7 @@ def get_latest_stage_info() -> Tuple[Optional[str], str]:
 
 
 def resolve_stage_file(target: Optional[str] = None) -> Tuple[Optional[str], Optional[str]]:
-    """解析阶段文件目标，支持当前阶段、绝对/相对路径和归档目录。"""
+    """解析Stage file目标，支持当前阶段、绝对/相对Path和归档目录。"""
     if not target:
         active_file, _ = get_latest_stage_info()
         if not active_file:
@@ -203,7 +203,7 @@ def count_adrs_from_index() -> int:
 def get_last_session_text() -> str:
     """读取最近一条会话快照摘要。"""
     match = re.search(r"- \*\*会话快照\*\*: (.*?)\n", read_text(cfg.session_file))
-    return match.group(1).strip() if match else "暂无记录"
+    return match.group(1).strip() if match else "None记录"
 
 
 def parse_bracket_list(text: str) -> List[str]:
@@ -322,7 +322,7 @@ def normalize_backlog_task_line(task_line: str, new_task_id: str) -> str:
 
 
 def calculate_progress(filepath: str) -> int:
-    """根据任务与验收项勾选状态估算阶段完成度百分比。"""
+    """根据任务与验收项checked状态估算阶段完成度百分比。"""
     content = read_text(filepath)
     if not content:
         return 0
@@ -438,11 +438,11 @@ def extract_summary_brief(content: str) -> str:
 
 
 def render_log_entry(filepath: str, message: str, task_name: Optional[str] = None,
-                     status: str = "进行中", next_action: Optional[str] = None,
+                     status: str = "in-progress", next_action: Optional[str] = None,
                      blocked_by: Optional[str] = None) -> str:
     """生成一条进度日志 Markdown 记录，不直接写入文件。"""
     log_id = _next_id(filepath, "LOG-")
-    status_text = f"阻塞 (Blocked by: {blocked_by})" if status == "阻塞" and blocked_by else status
+    status_text = f"blocked (Blocked by: {blocked_by})" if status == "blocked" and blocked_by else status
     return (
         f"- ### [{log_id}] | [{now_date()}] | [{task_name or 'SYNC'}] | [{get_sys_user()}] | [Ver:{get_git_info()}]\n"
         f"  - **状态**: {status_text}\n"

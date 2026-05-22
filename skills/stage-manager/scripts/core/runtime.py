@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Stage-Manager 运行时能力：路径、IO、输出、环境探测与写锁。"""
+"""Stage-Manager runtime utilities: paths, I/O, output, env discovery, and write lock."""
 
 import contextlib
 import json
@@ -22,25 +22,25 @@ TEMPLATE_PATH = os.path.join(SKILL_DIR, "references", "stage_template.md")
 LOCK_FILENAME = ".stage-manager.lock"
 
 ALLOWED_STAGE_STATUS = {"PLANNING", "IN_PROGRESS", "TESTING", "COMPLETED", "ARCHIVED"}
-ALLOWED_LOG_STATUS = {"已完成", "进行中", "阻塞"}
+ALLOWED_LOG_STATUS = {"done", "in-progress", "blocked"}
 ALLOWED_EXECUTOR = {"human", "agent", "sub_agent"}
 ALLOWED_VERIFY_BY = {"task_completion", "evidence_review", "metric_threshold", "artifact_presence"}
 
 STRINGS = {
     "stages_index_head": (
         "# Stages Index\n\n"
-        "> 此文件由 stage-manager 自动维护。所有资产位于 .stages/ 目录下。\n\n"
-        "---\n\n## 阶段清单\n"
+        "> This file is auto-maintained by stage-manager. All assets are under `.stages/`.\n\n"
+        "---\n\n## Stage Index\n"
     ),
-    "adrs_head": "# Architectural Decision Records (ADRS)\n\n---\n\n## 决策目录\n",
-    "sessions_head": "# Stage Session Logs (Compressed)\n\n---\n\n## 会话摘要\n",
-    "backlogs_head": "# 项目待办清单 (Backlogs)\n\n## [TECH_DEBT] 技术债务\n\n## [ROADMAP] 路线图\n",
+    "adrs_head": "# Architectural Decision Records (ADRS)\n\n---\n\n## Decision Index\n",
+    "sessions_head": "# Stage Session Logs (Compressed)\n\n---\n\n## Session Summaries\n",
+    "backlogs_head": "# Project Backlogs\n\n## [TECH_DEBT] Technical Debt\n\n## [ROADMAP] Roadmap\n",
 }
 
 
 @dataclass
 class PathConfig:
-    """保存 stage-manager 运行期涉及的所有派生路径。"""
+    """Store all derived runtime paths used by stage-manager."""
 
     root_dir: str = ""
     asset_root: str = ""
@@ -52,7 +52,7 @@ class PathConfig:
     archive_exec_dir: str = ""
 
     def configure(self, project_root: str):
-        """根据项目根目录刷新运行期路径配置，不执行文件读写。"""
+        """Refresh runtime path config from project root without file I/O."""
         self.root_dir = os.path.abspath(project_root)
         self.asset_root = os.path.join(self.root_dir, ".stages")
         self.backlog_file = os.path.join(self.asset_root, "BACKLOGS.md")
@@ -65,7 +65,7 @@ class PathConfig:
 
 @dataclass
 class OutputCtx:
-    """保存 JSON 输出模式及其累积载荷。"""
+    """Store JSON output mode and accumulated payload."""
 
     json_mode: bool = False
     data: Dict[str, Any] = field(default_factory=dict)
@@ -76,13 +76,13 @@ _out = OutputCtx()
 
 
 def emit(key: str, value: Any):
-    """在 JSON 模式下累积一个输出字段，不直接打印。"""
+    """Accumulate one output field in JSON mode instead of printing."""
     if _out.json_mode:
         _out.data[key] = value
 
 
 def info(msg: str):
-    """输出用户消息；JSON 模式下改为追加到 `messages`。"""
+    """Emit user-facing message; append to `messages` in JSON mode."""
     if _out.json_mode:
         _out.data.setdefault("messages", []).append(msg)
     else:
@@ -90,23 +90,23 @@ def info(msg: str):
 
 
 def flush_json():
-    """将 JSON 模式下累积的结果一次性打印出来。"""
+    """Print accumulated JSON payload once at the end."""
     if _out.json_mode:
         print(json.dumps(_out.data, ensure_ascii=False, indent=2))
 
 
 def now_date() -> str:
-    """返回当前日期，格式为 YYYY-MM-DD。"""
+    """Return current date in YYYY-MM-DD format."""
     return datetime.now().strftime("%Y-%m-%d")
 
 
 def now_datetime() -> str:
-    """返回当前时间，格式为 YYYY-MM-DD HH:MM。"""
+    """Return current time in YYYY-MM-DD HH:MM format."""
     return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
 def read_text(path: str) -> str:
-    """读取 UTF-8 文本文件；文件不存在时返回空串。"""
+    """Read UTF-8 text file; return empty string when missing."""
     if not os.path.exists(path):
         return ""
     with open(path, "r", encoding="utf-8") as handle:
@@ -114,7 +114,7 @@ def read_text(path: str) -> str:
 
 
 def write_text(path: str, content: str):
-    """以临时文件替换方式写入文本，避免半写入损坏目标文件。"""
+    """Write via temp-file replacement to avoid partial-write corruption."""
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as handle:
         handle.write(content)
@@ -122,12 +122,12 @@ def write_text(path: str, content: str):
 
 
 def _lock_path() -> str:
-    """返回当前项目的 stage 写锁文件路径。"""
+    """Return stage write-lock file path for current project."""
     return os.path.join(cfg.asset_root, LOCK_FILENAME)
 
 
 def _lock_payload(command: str) -> Dict[str, Any]:
-    """生成写锁元数据，供冲突提示和僵尸锁清理复用。"""
+    """Generate write-lock metadata for conflict hints and stale-lock cleanup."""
     return {
         "pid": os.getpid(),
         "user": get_sys_user(),
@@ -138,7 +138,7 @@ def _lock_payload(command: str) -> Dict[str, Any]:
 
 
 def _read_lock_payload(path: str) -> Dict[str, Any]:
-    """读取写锁元数据；解析失败时返回空字典。"""
+    """Read write-lock metadata; return empty dict on parse failure."""
     try:
         raw = read_text(path).strip()
         return json.loads(raw) if raw else {}
@@ -147,7 +147,7 @@ def _read_lock_payload(path: str) -> Dict[str, Any]:
 
 
 def _pid_is_alive(pid: Any) -> bool:
-    """判断给定 PID 是否仍然存活。"""
+    """Check whether the given PID is still alive."""
     if not isinstance(pid, int) or pid <= 0:
         return False
     try:
@@ -162,7 +162,7 @@ def _pid_is_alive(pid: Any) -> bool:
 
 
 def _format_lock_holder(meta: Dict[str, Any]) -> str:
-    """将锁元数据格式化为用户可读文本。"""
+    """Format lock metadata into user-readable text."""
     parts = []
     if meta.get("user"):
         parts.append(f"user={meta['user']}")
@@ -177,7 +177,7 @@ def _format_lock_holder(meta: Dict[str, Any]) -> str:
 
 @contextlib.contextmanager
 def write_lock(command: str):
-    """获取单写者锁，保证同一时刻仅有一个 stage 写命令运行。"""
+    """Acquire single-writer lock to ensure only one stage write command runs at a time."""
     ensure_structure()
     path = _lock_path()
     meta = _lock_payload(command)
@@ -204,12 +204,12 @@ def write_lock(command: str):
                     continue
             holder = _format_lock_holder(existing)
             raise RuntimeError(
-                f"[BUSY] 检测到另一个 stage 写命令正在运行：{holder}。"
-                " 请等待其完成，或确认异常退出后重试。"
+                f"[BUSY] Detected another stage write command running: {holder}。"
+                " Please wait until it finishes, or retry after confirming abnormal exit."
             )
 
     if not acquired:
-        raise RuntimeError("[BUSY] stage 写锁获取失败，请稍后重试。")
+        raise RuntimeError("[BUSY] Failed to acquire stage write lock. Please retry later.")
 
     try:
         yield
@@ -223,7 +223,7 @@ def write_lock(command: str):
 
 
 def discover_project_root(root_override: str | None = None) -> str:
-    """探测项目根目录，优先使用显式参数，再回退环境变量与向上搜索。"""
+    """Detect project root: explicit arg first, then env var and upward search."""
     if root_override:
         return os.path.abspath(root_override)
     env_root = os.environ.get("STAGE_MANAGER_ROOT")
@@ -240,7 +240,7 @@ def discover_project_root(root_override: str | None = None) -> str:
 
 
 def get_git_info() -> str:
-    """返回当前 Git 短提交号，失败时回退到 local-env。"""
+    """Return current Git short commit hash; fallback to local-env on failure."""
     try:
         short_hash = subprocess.check_output(
             ["git", "rev-parse", "--short", "HEAD"],
@@ -252,18 +252,18 @@ def get_git_info() -> str:
 
 
 def get_sys_user() -> str:
-    """返回当前系统用户名。"""
+    """Return current system username."""
     return os.environ.get("USER") or os.environ.get("USERNAME") or "unknown"
 
 
 def slugify_name(name: str) -> str:
-    """将阶段名称转换为可用于文件名的 slug。"""
+    """Convert stage name to filename-safe slug."""
     slug = re.sub(r"[^a-z0-9\-_.]+", "-", re.sub(r"\s+", "-", name.strip().lower()))
     return re.sub(r"-{2,}", "-", slug).strip("-") or "unnamed-stage"
 
 
 def ensure_structure():
-    """确保 `.stages` 目录树和基础索引文件存在，缺失时自动补齐。"""
+    """Ensure `.stages` tree and base index files exist; auto-create when missing."""
     for directory in [cfg.asset_root, cfg.stages_exec_dir, cfg.archive_exec_dir]:
         os.makedirs(directory, exist_ok=True)
 
@@ -271,18 +271,18 @@ def ensure_structure():
         (
             cfg.stages_index,
             lambda: (
-                STRINGS["stages_index_head"] + "\n---\n\n## 快速状态\n"
-                f"- [HEARTBEAT] Init\n- [LAST_SESSION] 暂无记录\n"
-                f"- 最近同步: {now_datetime()} | 用户: {get_sys_user()} | Version: {get_git_info()}\n"
+                STRINGS["stages_index_head"] + "\n---\n\n## Quick Status\n"
+                f"- [HEARTBEAT] Init\n- [LAST_SESSION] None记录\n"
+                f"- Last sync: {now_datetime()} | User: {get_sys_user()} | Version: {get_git_info()}\n"
             ),
         ),
         (
             cfg.adr_index,
-            lambda: STRINGS["adrs_head"] + f"\n---\n\n## 统计信息\n- 总计决策: 0\n- 最近更新: {now_datetime()}\n",
+            lambda: STRINGS["adrs_head"] + f"\n---\n\n## Statistics\n- Total decisions: 0\n- Last updated: {now_datetime()}\n",
         ),
         (
             cfg.session_file,
-            lambda: STRINGS["sessions_head"] + "\n---\n\n## 最近记录\n- 暂无活动记录\n",
+            lambda: STRINGS["sessions_head"] + "\n---\n\n## Recent Records\n- None活动记录\n",
         ),
         (cfg.backlog_file, lambda: STRINGS["backlogs_head"]),
     ]

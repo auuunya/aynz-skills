@@ -40,52 +40,52 @@ def render_dashboard_text(ctx, data):
     stats_str = data["stats_str"]
 
     ctx.info("\n" + "=" * 50)
-    ctx.info(" [BOOTSTRAP] 会话上下文恢复中..." if mode == "full" else f" [项目健康度] {stats_str}")
+    ctx.info(" [BOOTSTRAP] Restoring session context..." if mode == "full" else f" [Project health] {stats_str}")
     ctx.info("=" * 50)
 
     if mode == "full":
-        ctx.info(f"\n [项目概览] {stats_str}")
+        ctx.info(f"\n [Project overview] {stats_str}")
 
     if "current_stage" in data:
         progress = data["progress"]
         bar = "#" * int(progress / 5) + "-" * (20 - int(progress / 5))
-        ctx.info(f" [{'活跃阶段' if mode == 'full' else '阶段文件'}] {data['current_stage']}")
-        ctx.info(f" [完成进度] [{bar}] {progress}%")
+        ctx.info(f" [{'Active stage' if mode == 'full' else 'Stage file'}] {data['current_stage']}")
+        ctx.info(f" [Progress] [{bar}] {progress}%")
         pending = data.get("pending_tasks", [])
         if pending:
             limit = 3 if mode == "full" else 5
-            plabel = "下一步待办" if mode == "full" else "未完成任务"
+            plabel = "Next tasks" if mode == "full" else "Pending tasks"
             ctx.info(f"\n [{plabel}] (前{limit}条):")
             for task in pending[:limit]:
                 ctx.info(f"  [ ] {task.strip()}")
     elif mode == "full":
-        ctx.info(" [活跃阶段] 无活跃阶段")
+        ctx.info(" [Active stage] 无Active stage")
 
     sessions = data.get("recent_sessions", [])
     if sessions:
-        ctx.info(f"\n [{'记忆锚点' if mode == 'full' else '最近会话'}] {'最近会话快照' if mode == 'full' else '(最近3条)'}:")
+        ctx.info(f"\n [{'Memory anchors' if mode == 'full' else 'Recent sessions'}] {'Recent sessions快照' if mode == 'full' else '(最近3条)'}:")
         trunc = 100 if mode == "full" else 80
         for session in sessions[:3]:
             ctx.info(f"  > {session[:trunc]}{'...' if len(session) > trunc else ''}")
     elif mode == "full":
-        ctx.info("\n [记忆锚点] 暂无历史快照。")
+        ctx.info("\n [Memory anchors] None历史快照。")
 
     adrs = data.get("recent_adrs", [])
     if adrs:
-        ctx.info("\n [最近决策] (最近3条):" if mode == "brief" else "\n [最近决策]:")
+        ctx.info("\n [Recent decisions] (最近3条):" if mode == "brief" else "\n [Recent decisions]:")
         for adr in adrs[-3:]:
             ctx.info(f"  * {adr.strip()}")
 
     if mode == "full":
         backlog_count = data.get("backlog_count", 0)
         if backlog_count > 0:
-            ctx.info(f"\n [Backlog] {backlog_count} 个待认领任务")
-        ctx.info(f"\n [Skill 路径] {ctx.skill_path}")
-        ctx.info(f" [资产目录] {ctx.cfg.asset_root}")
+            ctx.info(f"\n [Backlog] {backlog_count} unclaimed tasks")
+        ctx.info(f"\n [Skill Path] {ctx.skill_path}")
+        ctx.info(f" [Asset root] {ctx.cfg.asset_root}")
 
     ctx.info("\n" + "=" * 50)
     if mode == "full":
-        ctx.info(" [OK] Bootstrap 完成。")
+        ctx.info(" [OK] Bootstrap completed.")
     ctx.info("=" * 50 + "\n")
 
 

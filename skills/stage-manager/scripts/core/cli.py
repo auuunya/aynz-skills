@@ -20,7 +20,7 @@ def build_parser(version: str, allowed_log_status) -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {version}")
-    parser.add_argument("--root", help="指定项目根目录")
+    parser.add_argument("--root", help="Specify project root path")
     parser.add_argument("--json", action="store_true", help="输出 JSON 格式")
     sub = parser.add_subparsers(dest="cmd", title="子命令", required=True)
 
@@ -30,9 +30,9 @@ def build_parser(version: str, allowed_log_status) -> argparse.ArgumentParser:
     p = sub.add_parser("sync", help="同步进展")
     p.add_argument("message", help="进展描述；[ADR] 前缀触发决策同步")
     p.add_argument("--task-name", help="关联任务名")
-    p.add_argument("--status", default="进行中", choices=sorted(allowed_log_status))
+    p.add_argument("--status", default="in-progress", choices=sorted(allowed_log_status))
     p.add_argument("--next-action", help="后续行动")
-    p.add_argument("--blocked-by", help="阻塞依赖 ID")
+    p.add_argument("--blocked-by", help="blocked依赖 ID")
     p.add_argument("--file", help="指定 stage 文件")
 
     p = sub.add_parser("summary", help="会话快照或阶段总结")
@@ -63,13 +63,13 @@ def build_parser(version: str, allowed_log_status) -> argparse.ArgumentParser:
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--file", help="指定 stage 文件")
 
-    p = sub.add_parser("check", help="勾选/取消勾选任务或验收项")
+    p = sub.add_parser("check", help="checked/unchecked任务或验收项")
     p.add_argument("item_id", help="目标 ID（如 TASK-001、AC-002）")
-    p.add_argument("--uncheck", action="store_true", help="取消勾选")
+    p.add_argument("--uncheck", action="store_true", help="unchecked")
     p.add_argument("--file", help="指定 stage 文件")
 
-    p = sub.add_parser("switch", help="切换当前活跃阶段")
-    p.add_argument("target", help="目标阶段文件名")
+    p = sub.add_parser("switch", help="切换当前Active stage")
+    p.add_argument("target", help="目标Stage file名")
 
     return parser
 
@@ -129,7 +129,7 @@ def execute_command(args, ctx) -> bool:
             elif args.cmd == "validate":
                 filename, filepath = ctx.resolve_stage_file(getattr(args, "file", None))
                 if not filename or not filepath:
-                    ctx.info("[!] 当前没有可操作的阶段文件。")
+                    ctx.info("[!] 当前没有可操作的Stage file。")
                     return False
                 errors, warns = ctx.validate_stage_document(filepath)
                 ctx.emit("validate", {"file": filename, "errors": errors, "warnings": warns})

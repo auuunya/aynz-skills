@@ -3,15 +3,15 @@ import re
 import shutil
 
 
-def sync_log(ctx, message: str, task_name=None, status: str = "进行中",
+def sync_log(ctx, message: str, task_name=None, status: str = "in-progress",
              next_action=None, blocked_by=None, file_target=None) -> bool:
-    """向阶段文档追加日志；遇到 `[ADR]` 前缀时同步写入 ADR 存根和索引。"""
+    """Append logs to stage document; when prefixed with `[ADR]`, also write ADR stub and index."""
     filename, filepath = ctx.resolve_stage_file(file_target)
     if not filename or not filepath:
-        ctx.info("[!] 当前没有可操作的阶段文件。")
+        ctx.info("[!] 当前没有可操作的Stage file。")
         return False
     if status not in ctx.allowed_log_status:
-        ctx.info(f"[!] 非法日志状态: {status}，允许值: {', '.join(sorted(ctx.allowed_log_status))}")
+        ctx.info(f"[!] Invalid log status: {status}，allowed values: {', '.join(sorted(ctx.allowed_log_status))}")
         return False
 
     content = ctx.read_text(filepath)
@@ -25,7 +25,7 @@ def sync_log(ctx, message: str, task_name=None, status: str = "进行中",
             ctx.render_adr_entry(adr_id, clean_msg),
             remove_placeholder_tbd=True,
         )
-        ctx.info(f"[OK] 已创建 ADR 存根: {adr_id}")
+        ctx.info(f"[OK] Created ADR stub: {adr_id}")
 
     content = ctx.prepend_to_section_body(
         content,
@@ -42,7 +42,7 @@ def sync_log(ctx, message: str, task_name=None, status: str = "进行中",
 
     ctx.write_text(filepath, content)
     ctx.update_heartbeat()
-    ctx.info(f"[OK] 已同步到 {filename}")
+    ctx.info(f"[OK] Synced to {filename}")
     return True
 
 
@@ -51,7 +51,7 @@ def append_stage_summary(ctx, name: str, milestone_goal: str, core_results,
     """向阶段文档 section 9 追加总结记录，并刷新 heartbeat。"""
     filename, filepath = ctx.resolve_stage_file(file_target)
     if not filename or not filepath:
-        ctx.info("[!] 当前没有可操作的阶段文件。")
+        ctx.info("[!] 当前没有可操作的Stage file。")
         return False
     content = ctx.read_text(filepath)
     entry = ctx.render_summary_entry(filepath, name, milestone_goal, core_results, change_audit, tech_debt)
@@ -63,10 +63,10 @@ def append_stage_summary(ctx, name: str, milestone_goal: str, core_results,
 
 
 def archive_stage(ctx, force: bool = False, dry_run: bool = False, file_target=None) -> bool:
-    """完成归档闭环：校验门禁、回流 backlog、迁移文件并写入会话摘要。"""
+    """完成归档闭环：校验门禁、回流 backlog、迁移文件并写入Session Summaries。"""
     filename, src = ctx.resolve_stage_file(file_target)
     if not filename or not src:
-        ctx.info("[!] 当前没有可操作的阶段文件。")
+        ctx.info("[!] 当前没有可操作的Stage file。")
         return False
     if src.startswith(os.path.abspath(ctx.cfg.archive_exec_dir)):
         ctx.info("[!] 该阶段已经位于 archive 目录。")
@@ -134,7 +134,7 @@ def archive_stage(ctx, force: bool = False, dry_run: bool = False, file_target=N
             src,
             "Archive Summary",
             "阶段归档。",
-            ["阶段已完成归档流程。"],
+            ["阶段done归档流程。"],
             "归档时自动补写状态与结束日期。",
             "已按规则分流至 Backlog。",
         ))
