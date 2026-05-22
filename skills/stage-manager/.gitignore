@@ -1,0 +1,28 @@
+# 仓库相关
+STAGES.md
+BACKLOGS.md
+ADRS.md
+STAGE_SESSIONS.md
+.stages/
+archive/
+agents/
+
+!templates/BACKLOGS.md
+
+# Python 缓存与编译文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 系统文件
+.DS_Store
+.Thumbs.db
+.vscode/
+.idea/
+.env
+.venv/
+env/
+
+# 运行记录文件
+.log
+*.log
