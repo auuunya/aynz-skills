@@ -1,124 +1,124 @@
 ---
 name: stage-manager
-description: 阶段规划、任务拆解、进度同步、ADR 记录、backlog 认领、会话摘要与归档门禁 skill。
+description: Stage planning, task decomposition, progress sync, ADR logging, backlog intake, session summary, and archive gating skill.
 version: 1.0.0
 ---
 
-> [MANDATORY] 若存在 `SKILL.override.md`，必须先读取；其约束优先级高于本文件。
+> [MANDATORY] If `SKILL.override.md` exists, read it first. Its constraints override this file.
 >
-> [MANDATORY] 所有会写入 `.stages/` 或阶段文档的操作必须串行执行。禁止并发运行 `stage:init`、`stage:sync`、`stage:summary`、`stage:intake`、`stage:check`、`stage:switch`、`stage:done`；`sub_agent` 默认只读。
+> [MANDATORY] All operations that write into `.stages/` or stage documents must run serially. Do not run `stage:init`, `stage:sync`, `stage:summary`, `stage:intake`, `stage:check`, `stage:switch`, `stage:done` concurrently; `sub_agent` is read-only by default.
 
-## 0. 硬规则
+## 0. Hard Rules
 
-- `stage:*` 的实际入口是：
+- Real entrypoint for `stage:*` is:
 
 ```text
 python3 <skill-path>/scripts/stage.py <subcommand>
 ```
 
-- 当前稳定 CLI 入口是 `scripts/stage.py`；`scripts/core/*.py` 是内部实现，除非用户明确要求改脚本实现，否则不要进入 `core/`。
-- `.stages/` 是系统运行资产目录，`.stage/` 是交付证据目录；不要混用。
-- 不要手动改 `.stages/STAGES.md`、`ADRS.md`、`BACKLOGS.md`、`STAGE_SESSIONS.md`。
-- 未知信息写 `TBD` / `null` / `[]`，不要臆造。
-- 操作其他阶段时使用 `--file <stage-file>`；`bootstrap` 无 `--file` 语义。
+- Stable CLI entry is `scripts/stage.py`; `scripts/core/*.py` is internal. Do not modify `core/` unless explicitly requested.
+- `.stages/` is runtime system assets; `.stage/` is delivery evidence. Do not mix them.
+- Do not manually edit `.stages/STAGES.md`, `ADRS.md`, `BACKLOGS.md`, `STAGE_SESSIONS.md`.
+- Use `TBD` / `null` / `[]` for unknowns. Do not fabricate.
+- Use `--file <stage-file>` when operating on non-current stages; `bootstrap` has no `--file` semantics.
 
-## 1. 三条最短路径
+## 1. Three Shortest Paths
 
-| 场景 | 动作序列 |
+| Scenario | Action sequence |
 | :--- | :--- |
-| 新项目，无当前阶段 | `stage:bootstrap` -> 读 `references/best_practice.md` -> `stage:init <name>` -> 补全 `## 1-6` -> `stage:validate` |
-| 继续推进当前阶段 | `stage:bootstrap` -> `stage:status` -> `stage:sync` / `stage:check` / `stage:intake` |
-| 准备归档 | `stage:validate` -> `stage:summary --stage ...` -> 核对 DoD -> `stage:done` |
+| New project, no current stage | `stage:bootstrap` -> read `references/best_practice.md` -> `stage:init <name>` -> complete `## 1-6` -> `stage:validate` |
+| Continue current stage | `stage:bootstrap` -> `stage:status` -> `stage:sync` / `stage:check` / `stage:intake` |
+| Ready to archive | `stage:validate` -> `stage:summary --stage ...` -> verify DoD -> `stage:done` |
 
-新建阶段时，“先 `bootstrap`，再读 `references/best_practice.md`，再 `init`”是硬顺序，不是建议。
-若回答里缺少“读取 `references/best_practice.md`”这一步，应视为流程不完整；不要把它折叠进“按模板补全文档”或“参考最佳实践”这类模糊表述。
+For new stage creation, "bootstrap -> read best_practice -> init" is a hard order, not a suggestion.
+If an answer omits "read `references/best_practice.md`", treat it as incomplete; do not hide it under vague phrasing.
 
-## 2. 命令映射
+## 2. Command Mapping
 
-| 语义指令 | CLI 子命令 | 用途 |
+| Semantic command | CLI subcommand | Purpose |
 | :--- | :--- | :--- |
-| `stage:bootstrap` | `bootstrap` | 加载会话快照、最近决策、当前阶段与 backlog |
-| `stage:init <name>` | `init <name>` | 初始化新阶段并写入索引 |
-| `stage:sync "<msg>"` | `sync "<msg>"` | 增量日志；`[ADR]` 前缀触发 ADR 存根与索引 |
-| `stage:summary "<text>"` | `summary "<text>"` | 保存会话快照 |
-| `stage:summary --stage ...` | `summary --stage ...` | 写入 `## 9. 阶段总结` |
-| `stage:intake "<keyword>"` | `intake "<keyword>"` | 从 backlog 认领任务 |
-| `stage:status` | `status` | 查看健康度、进度、最近决策与会话摘要 |
-| `stage:validate` | `validate` | 校验阶段文档 |
-| `stage:check <ID>` | `check <ID>` | 勾选或反勾选任务/验收项 |
-| `stage:switch <file>` | `switch <file>` | 切换当前阶段指针 |
-| `stage:done` | `done` | 闭环归档；严禁擅自 `--force` |
+| `stage:bootstrap` | `bootstrap` | Load session snapshot, recent decisions, current stage, and backlog |
+| `stage:init <name>` | `init <name>` | Initialize a stage and register index |
+| `stage:sync "<msg>"` | `sync "<msg>"` | Incremental log; `[ADR]` prefix creates ADR stub and index |
+| `stage:summary "<text>"` | `summary "<text>"` | Save session snapshot |
+| `stage:summary --stage ...` | `summary --stage ...` | Write `## 9. Stage Summary` |
+| `stage:intake "<keyword>"` | `intake "<keyword>"` | Claim tasks from backlog |
+| `stage:status` | `status` | Inspect health, progress, recent decisions, and session summaries |
+| `stage:validate` | `validate` | Validate stage document |
+| `stage:check <ID>` | `check <ID>` | Toggle task/AC checklist |
+| `stage:switch <file>` | `switch <file>` | Switch current stage pointer |
+| `stage:done` | `done` | Close and archive; do not use `--force` without authorization |
 
-## 3. 文档与流程规则
+## 3. Document & Process Rules
 
-- 规范模板：`references/stage_template.md`
-- 最佳实践：`references/best_practice.md`
+- Canonical template: `references/stage_template.md`
+- Best practice: `references/best_practice.md`
 
-### 3.1 文档结构
+### 3.1 Document Structure
 
-- 保留所有 `@section:*` 锚点、章节编号和顺序。
-- 只增量修改受影响 section，不要整体重写。
-- 新增首条内容时，替换 `- 暂无` 占位，不要并列保留。
+- Keep all `@section:*` anchors, section numbering, and order.
+- Update only impacted sections incrementally; avoid full rewrites.
+- When adding the first real item, replace `- None` placeholder.
 
-### 3.2 Schema 关键约束
+### 3.2 Schema Constraints
 
-- 任务行与验收项格式以 `references/stage_template.md` 为唯一准绳。
-- `executor` 仅允许：`agent` / `human` / `sub_agent`
-- `verify_by` 仅允许：`task_completion` / `evidence_review` / `metric_threshold` / `artifact_presence`
-- `due` 未知时填 `YYYY-MM-DD` 或 `null`
+- Task lines and AC format must follow `references/stage_template.md`.
+- Allowed `executor`: `agent` / `human` / `sub_agent`
+- Allowed `verify_by`: `task_completion` / `evidence_review` / `metric_threshold` / `artifact_presence`
+- Unknown `due`: use `YYYY-MM-DD` or `null`
 
 ### 3.3 Evidence
 
-- 代码和测试 evidence 保持原始路径。
-- 报告、文档、日志、快照等非代码 evidence 统一放 `.stage/`。
-- `evidence` 必须优先引用已存在或已确认会产出的对象；拿不准就写 `TBD`。
-- 实施型阶段必须产出实际代码、配置或测试变更；只有日志、总结、ADR 不算完成。
+- Keep code/test evidence in original project paths.
+- Put non-code evidence (reports/docs/logs/snapshots) under `.stage/`.
+- `evidence` should prefer existing or confirmed-to-be-produced artifacts; use `TBD` if uncertain.
+- Implementation stages must produce real code/config/test changes; logs/summaries/ADRs alone are not sufficient.
 
 ### 3.4 ADR
 
-- 用 `stage:sync "[ADR] <title>"` 创建 ADR 存根与索引。
-- 只允许增量补全目标阶段文档 `## 8. 关键决策（ADRs）` 的四字段：背景/动机、可选方案、结论、影响/后果。
-- 不要手动改 `.stages/ADRS.md`。
-- 信息不足时保留 `TBD` 并向用户索取，不要臆造。
+- Use `stage:sync "[ADR] <title>"` to create ADR stub and index.
+- Only incrementally complete four fields in `## 8. Key Decisions (ADRs)`: background/motivation, alternatives, decision, impact/consequences.
+- Do not manually edit `.stages/ADRS.md`.
+- Keep `TBD` and ask user for missing info; do not fabricate.
 
-### 3.5 Done 门禁
+### 3.5 Done Gate
 
-执行 `stage:done` 前，必须确认：
+Before `stage:done`, verify:
 
-1. 所有 `[P0]` 任务已完成
-2. `## 5. 验收标准` 已全部勾选
-3. `## 3. 非范围` 的新想法已迁移到 backlog 或后续阶段
-4. 会话快照与阶段总结已补齐，或用户明确允许最小归档总结
-5. 实施型阶段已具备真实 evidence
+1. All `[P0]` tasks are complete
+2. All checks in `## 5. Acceptance Criteria` are checked
+3. New ideas from `## 3. Out of Scope` are migrated to backlog or future stages
+4. Session snapshot and stage summary are completed, unless user explicitly allows minimal archive summary
+5. Implementation stage has real evidence
 
-不满足时，原样展示缺失项；未经用户授权，不得使用 `--force`。
+If not satisfied, report missing items verbatim. Do not use `--force` without user authorization.
 
-## 4. 输出要求
+## 4. Output Requirements
 
-- 日志必须指向具体模块、接口、文件、风险或 ADR，避免“已优化”“已处理”。
-- 会话快照与阶段总结不是同一动作：
-  - 会话快照：`stage:summary "<text>"`
-  - 阶段总结：`stage:summary --stage --name ... --goal ... --result ... --audit ... --debt ...`
-- 规划型阶段可主要产出文档、方案、审计结果。
-- 实施型阶段必须落到代码、配置、测试或构建产物。
+- Logs must point to concrete modules/APIs/files/risks/ADRs; avoid vague statements.
+- Session snapshot and stage summary are different actions:
+  - Session snapshot: `stage:summary "<text>"`
+  - Stage summary: `stage:summary --stage --name ... --goal ... --result ... --audit ... --debt ...`
+- Planning stages may output docs/plans/audit artifacts.
+- Implementation stages must land code/config/test/build artifacts.
 
-### 模块级进展日志最小模板
+### Minimal module-level log template
 
 ```text
-<模块/接口/文件> | change=<本次变更或当前状态> | evidence=<测试/文档/路径/ADR，未知写 TBD> | next=<下一个明确动作> | risk=<无 / 具体风险>
+<module/api/file> | change=<delta or current status> | evidence=<test/doc/path/ADR, use TBD if unknown> | next=<next concrete step> | risk=<none / specific risk>
 ```
 
-- 一条日志只描述一个模块主题；跨模块请拆开。
-- `next` 必须是紧邻的可执行动作。
-- `risk` 没有就写 `无`。
+- One log entry should describe one module topic; split cross-module updates.
+- `next` must be immediately actionable.
+- If there is no risk, write `none`.
 
-## 5. 评估与恢复
+## 5. Evaluation & Recovery
 
-- dry-run 评估至少覆盖：新建阶段、推进当前阶段并记录 ADR、归档门禁、单写者约束。
+- Dry-run evaluation should at least cover: new stage creation, current-stage progress + ADR logging, archive gating, and single-writer constraints.
 
-常见恢复动作：
+Common recovery actions:
 
-- `bootstrap` 后无当前阶段：`stage:init <name>`
-- 需要操作其他阶段：在写命令后追加 `--file <stage-file>`
-- `validate` 只有 WARN：继续推进，但在 `done` 前补齐
-- `done` 被拒绝：先修文档或 evidence，再重试；未经授权不得 `--force`
+- No current stage after `bootstrap`: `stage:init <name>`
+- Need to operate another stage: append `--file <stage-file>` to write commands
+- `validate` returns WARN only: continue, but resolve before `done`
+- `done` rejected: fix docs/evidence first, then retry; no `--force` without authorization

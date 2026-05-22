@@ -1,8 +1,8 @@
 ---
 name: stage-manager-override
-description: stage-manager 当前仓库覆盖约束
+description: Repository-specific override constraints for stage-manager.
 version: 1.0.0
 ---
 
-- 稳定 CLI 入口是 `scripts/stage.py`。
-- `scripts/core/*.py` 是内部实现；除非用户明确要求改脚本实现，否则优先聚焦 `.stages/`、阶段文档和交付物。
+- The stable CLI entry is `scripts/stage.py`.
+- `scripts/core/*.py` is internal implementation. Unless the user explicitly asks to modify internals, focus on `.stages/`, stage documents, and deliverables.

@@ -1,29 +1,29 @@
 ---
 name: whoami
-description: 通过对话构建可被Agent调用的KYC知识库；维度由信号涌现，用户确认后创建。
+description: Build an Agent-callable KYC knowledge base through conversation; dimensions emerge from signals and are created only after user confirmation.
 version: 1.0.0
 ---
 
-> [MANDATORY] 维度不得为“完整性”强制创建；只能来源于对话中稳定信号并经用户确认。
+> [MANDATORY] Never create dimensions for "completeness". Dimensions must come from stable conversation signals and explicit user confirmation.
 
 ## Core
 
-- 每个维度文件都是可调用上下文
-- `INDEX.md` 负责路由，且仅收录已确认维度
-- 目标是“可执行的充分性”，不是“模板完整性”
+- Each dimension file is callable context for the Agent
+- `INDEX.md` routes retrieval and includes only confirmed dimensions
+- Goal: execution sufficiency, not template completeness
 
 ## Workflow
 
-1. 先广后深：先聊全局，再下钻关键维度。
-2. 识别稳定信号：特质、偏好、目标、原则、习惯、社交模式等。
-3. 维度提议门（Proposal Gate）：
-   - 我听到的信号是什么
-   - 建议的维度文件名是什么
-   - 为什么这个维度对任务执行有帮助
-   - 询问用户是否确认创建
-4. 访谈方式：事实问题可“选项+输入”，反思问题优先开放输入。
-5. 产出草稿并确认后写入。
-6. 动态构建 `INDEX.md`（仅包含已确认维度）。
+1. Start broad, then go deep into key dimensions.
+2. Detect stable signals: traits, preferences, goals, principles, habits, social patterns, etc.
+3. Run the Proposal Gate for each candidate dimension:
+   - What signal was observed
+   - Suggested dimension filename
+   - Why this dimension improves task execution
+   - Ask user confirmation before creation
+4. Interview style: use "options + free input" for factual prompts, open input for reflective prompts.
+5. Draft, confirm, then write.
+6. Build `INDEX.md` dynamically (confirmed dimensions only).
 
 ## Dimension Draft Template
 
@@ -39,24 +39,24 @@ version: 1.0.0
 
 ## Completion
 
-满足以下条件即可完成：
+KYC is complete when:
 
-- 所有已创建文件均得到用户确认
-- 每个文件都足以支持至少一个真实任务决策
-- `INDEX.md` 可引导检索与调用
-- 没有为凑模板而新增维度
+- All created files are explicitly confirmed by the user
+- Each file supports at least one real task decision
+- `INDEX.md` can guide retrieval and execution
+- No forced dimensions were added to satisfy a template
 
 ## Incremental Update
 
-1. 读取现有文件与 `INDEX.md`
-2. 先确认“哪些要改、哪些保持不动”
-3. 仅在出现新稳定信号时提议新增维度
-4. 仅在用户明确确认后创建/更新
-5. 同步更新 `INDEX.md`（增删都要反映）
-6. 禁止自动补齐“缺失维度”
+1. Read existing files and `INDEX.md`
+2. Confirm what should change and what should remain untouched
+3. Propose new dimensions only when new stable signals appear
+4. Create/update only after explicit user confirmation
+5. Sync `INDEX.md` for additions/removals
+6. Never auto-create missing dimensions for completeness
 
 ## Notes
 
-- 保持对话自然
-- 保留用户原话风格
-- 深度优先于广度：宁少而准，不多而浅
+- Keep the conversation natural
+- Preserve the user's original voice
+- Prefer depth over breadth: fewer accurate dimensions beat many shallow ones
