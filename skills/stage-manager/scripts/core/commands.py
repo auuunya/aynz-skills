@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Stage-Manager 剩余命令实现：init、check、switch 与 backlog 认领。"""
+"""Stage-Manager EN：init、check、switch EN backlog EN。"""
 
 import os
 import re
@@ -48,7 +48,7 @@ def init_stage(ctx, name: str) -> bool:
 
 
 def check_stage_name_exists(ctx, slug: str) -> Optional[str]:
-    """检查给定 slug 是否已存在于未归档或归档Stage file中。"""
+    """EN slug ENStage fileEN。"""
     pattern = re.compile(rf"^stage-\d+-{re.escape(slug)}\.md$")
     for directory in [ctx.cfg.stages_exec_dir, ctx.cfg.archive_exec_dir]:
         if not os.path.exists(directory):
@@ -63,7 +63,7 @@ def check_item(ctx, item_id: str, uncheck: bool = False, file_target: Optional[s
     """Toggle TASK/AC checkbox state and refresh heartbeat."""
     filename, filepath = ctx.resolve_stage_file(file_target)
     if not filename or not filepath:
-        ctx.info("[!] 当前没有可操作的Stage file。")
+        ctx.info("[!] ENtop ENStage file。")
         return False
 
     content = ctx.read_text(filepath)
@@ -94,19 +94,19 @@ def check_item(ctx, item_id: str, uncheck: bool = False, file_target: Optional[s
     ctx.update_heartbeat()
 
     action = "unchecked" if uncheck else "checked"
-    ctx.info(f"[OK] 已{action}: {item_id}")
+    ctx.info(f"[OK] EN{action}: {item_id}")
     ctx.emit("checked", {"id": item_id, "new_state": "unchecked" if uncheck else "checked"})
     return True
 
 
 def switch_stage(ctx, target: str) -> bool:
-    """切换当前Active stage，并同步更新索引与 heartbeat。"""
+    """ENtop Active stage，EN heartbeat。"""
     filename, filepath = ctx.resolve_stage_file(target)
     if not filename or not filepath:
-        ctx.info(f"[!] 未找到Stage file: {target}")
+        ctx.info(f"[!] ENStage file: {target}")
         return False
     if not filepath.startswith(os.path.abspath(ctx.cfg.stages_exec_dir)):
-        ctx.info(f"[!] 只能切换到Active stage（非归档）: {filename}")
+        ctx.info(f"[!] ENActive stage（EN）: {filename}")
         return False
     ctx.rewrite_stages_index(current_stage=filename)
     ctx.update_heartbeat()
@@ -116,10 +116,10 @@ def switch_stage(ctx, target: str) -> bool:
 
 
 def intake_backlog(ctx, keyword: str, dry_run: bool = False, file_target: Optional[str] = None) -> bool:
-    """按关键字从 backlog 认领任务；非 dry-run 时同时修改 backlog 与Stage file。"""
+    """EN backlog EN；EN dry-run EN backlog ENStage file。"""
     filename, filepath = ctx.resolve_stage_file(file_target)
     if not filename or not filepath:
-        ctx.info("[!] 错误：当前没有可操作的Stage file。")
+        ctx.info("[!] EN：ENtop ENStage file。")
         return False
 
     lines = ctx.read_text(ctx.cfg.backlog_file).splitlines(True)
@@ -131,7 +131,7 @@ def intake_backlog(ctx, keyword: str, dry_run: bool = False, file_target: Option
             remaining.append(line)
 
     if not extracted:
-        ctx.info(f"[!] No matching entries found in BACKLOGS.md for '{keyword}' 的任务。")
+        ctx.info(f"[!] No matching entries found in BACKLOGS.md for '{keyword}' EN。")
         return False
 
     content = ctx.read_text(filepath)
@@ -151,7 +151,7 @@ def intake_backlog(ctx, keyword: str, dry_run: bool = False, file_target: Option
         return True
 
     full = "".join(remaining)
-    full = re.sub(r"### 来自 .*? \(\d{4}-\d{2}-\d{2}\)\n\s*(?=###|##|$)", "", full, flags=re.S)
+    full = re.sub(r"### From .*? \(\d{4}-\d{2}-\d{2}\)\n\s*(?=###|##|$)", "", full, flags=re.S)
     ctx.write_text(ctx.cfg.backlog_file, full)
 
     content = ctx.prepend_to_section_body(content, 4, "\n".join(normalized), remove_placeholder_tbd=True)
@@ -167,12 +167,12 @@ def route_backlog(ctx, tasks: List[str], stage_file: str, category_marker: str):
     if not tasks:
         return
     lines = ctx.read_text(ctx.cfg.backlog_file).splitlines(True)
-    source_label = "out-of-scope items" if category_marker == "[ROADMAP]" else "溢出与Pending tasks"
-    header = f"### 来自 {stage_file} 的{source_label} ({ctx.now_date()})\n"
+    source_label = "out-of-scope items" if category_marker == "[ROADMAP]" else "overflow and pending tasks"
+    header = f"### From {stage_file} {source_label} ({ctx.now_date()})\n"
 
     insert_idx = next((index + 1 for index, line in enumerate(lines) if category_marker in line), -1)
     if insert_idx == -1:
-        ctx.info(f"[!] Warning: marker not found in BACKLOGS.md:  '{category_marker}' 标记，Task routing skipped.")
+        ctx.info(f"[!] Warning: marker not found in BACKLOGS.md:  '{category_marker}' marker. Task routing skipped.")
         return
 
     new_content = [header] + [f"{task}\n" if not task.endswith("\n") else task for task in tasks] + ["\n"]

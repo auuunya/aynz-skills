@@ -8,7 +8,7 @@ def sync_log(ctx, message: str, task_name=None, status: str = "in-progress",
     """Append logs to stage document; when prefixed with `[ADR]`, also write ADR stub and index."""
     filename, filepath = ctx.resolve_stage_file(file_target)
     if not filename or not filepath:
-        ctx.info("[!] 当前没有可操作的Stage file。")
+        ctx.info("[!] ENtop ENStage file。")
         return False
     if status not in ctx.allowed_log_status:
         ctx.info(f"[!] Invalid log status: {status}，allowed values: {', '.join(sorted(ctx.allowed_log_status))}")
@@ -48,66 +48,66 @@ def sync_log(ctx, message: str, task_name=None, status: str = "in-progress",
 
 def append_stage_summary(ctx, name: str, milestone_goal: str, core_results,
                          change_audit: str, tech_debt: str, file_target=None) -> bool:
-    """向阶段文档 section 9 追加总结记录，并刷新 heartbeat。"""
+    """Append summary record to stage doc section 9 and refresh heartbeat."""
     filename, filepath = ctx.resolve_stage_file(file_target)
     if not filename or not filepath:
-        ctx.info("[!] 当前没有可操作的Stage file。")
+        ctx.info("[!] ENtop ENStage file。")
         return False
     content = ctx.read_text(filepath)
     entry = ctx.render_summary_entry(filepath, name, milestone_goal, core_results, change_audit, tech_debt)
     content = ctx.prepend_to_section_body(content, 9, entry, remove_placeholder_tbd=True)
     ctx.write_text(filepath, content)
     ctx.update_heartbeat()
-    ctx.info(f"[OK] 已写入阶段总结: {filename}")
+    ctx.info(f"[OK] Stage summary written: {filename}")
     return True
 
 
 def archive_stage(ctx, force: bool = False, dry_run: bool = False, file_target=None) -> bool:
-    """完成归档闭环：校验门禁、回流 backlog、迁移文件并写入Session Summaries。"""
+    """Complete archive flow: validate gates, route backlog, move files, update Session Summaries."""
     filename, src = ctx.resolve_stage_file(file_target)
     if not filename or not src:
-        ctx.info("[!] 当前没有可操作的Stage file。")
+        ctx.info("[!] ENtop ENStage file。")
         return False
     if src.startswith(os.path.abspath(ctx.cfg.archive_exec_dir)):
-        ctx.info("[!] 该阶段已经位于 archive 目录。")
+        ctx.info("[!] EN archive EN。")
         return False
 
     errors, warns = ctx.validate_stage_document(src)
     if errors and not force:
-        ctx.info("[!] 归档前校验失败：")
+        ctx.info("[!] ENtop EN：")
         for err in errors:
             ctx.info(f"  [ERROR] {err}")
         for warn in warns:
             ctx.info(f"  [WARN]  {warn}")
-        ctx.info("[?] 请先修复上述 ERROR。需要强制继续时使用: done --force")
+        ctx.info("[?] Please fix the ERRORs above. Use done --force only if explicitly needed.")
         return False
 
     gates = [
-        (ctx.check_p0_completed, "仍存在未完成的 [P0] 任务", "请先完成上述 P0 任务"),
-        (ctx.check_dod_completed, "## 5. 验收标准 (DoD) 未能全量通过", "请先完成上述验收项"),
+        (ctx.check_p0_completed, "There are unfinished [P0] tasks", "Please complete the P0 tasks first"),
+        (ctx.check_dod_completed, "## 5. Acceptance criteria (DoD) not fully passed", "Please complete the acceptance items first"),
     ]
     for checker, fail_msg, fix_msg in gates:
         ok, pending = checker(src)
         if not ok and not force:
-            ctx.info(f"\n[!] 归档拒绝：{fail_msg}。")
+            ctx.info(f"\n[!] Archive rejected: {fail_msg}。")
             for item in pending:
                 ctx.info(f"  {item}")
-            ctx.info(f"\n[?] {fix_msg}。需要强制继续时使用: done --force")
+            ctx.info(f"\n[?] {fix_msg}。EN: done --force")
             return False
 
     if not ctx.has_summary_content(src) and not force:
-        ctx.info("\n[!] 归档拒绝：## 9. 阶段总结 仍为空。")
-        ctx.info("[?] 请先补充阶段总结。需要强制继续时使用: done --force")
+        ctx.info("\n[!] Archive rejected: ## 9. EN EN。")
+        ctx.info("[?] Please add stage summary first. Use done --force only if needed.")
         return False
 
     impl_ok, _ = ctx.check_implementation_evidence(src)
     if not impl_ok and not force:
-        ctx.info("\n[!] 归档拒绝：实施型阶段尚未发现实际代码/测试/配置 evidence。")
-        ctx.info("[?] 请先补充可验证 evidence。需要强制继续时使用: done --force")
+        ctx.info("\n[!] Archive rejected: Implementation stage has no verifiable code/test/config evidence yet.")
+        ctx.info("[?] Please add verifiable evidence first. Use done --force only if needed.")
         return False
 
     if dry_run:
-        ctx.info(f"[DRY-RUN] 将归档阶段: {filename}")
+        ctx.info(f"[DRY-RUN] Will archive stage: {filename}")
         for warn in warns:
             ctx.info(f"[DRY-RUN][WARN] {warn}")
         return True
@@ -133,10 +133,10 @@ def archive_stage(ctx, force: bool = False, dry_run: bool = False, file_target=N
         content = ctx.replace_section_body(content, 9, ctx.render_summary_entry(
             src,
             "Archive Summary",
-            "阶段归档。",
-            ["阶段done归档流程。"],
-            "归档时自动补写状态与结束日期。",
-            "已按规则分流至 Backlog。",
+            "Stage archived.",
+            ["Stage done/archive flow."],
+            "Status and end date auto-filled during archive.",
+            "Routed to Backlog by policy.",
         ))
 
     ctx.write_text(src, content)
@@ -144,12 +144,12 @@ def archive_stage(ctx, force: bool = False, dry_run: bool = False, file_target=N
     dst = os.path.join(ctx.cfg.archive_exec_dir, filename)
     shutil.copy2(src, dst)
     if not os.path.exists(dst) or os.path.getsize(dst) != os.path.getsize(src):
-        ctx.info("[!] 归档复制验证失败，保留源文件。")
+        ctx.info("[!] Archive copy verification failed; source file retained.")
         return False
     os.remove(src)
 
     remaining = ctx.list_md_files(ctx.cfg.stages_exec_dir)
     ctx.rewrite_stages_index(current_stage=remaining[0] if remaining else None)
-    ctx.update_session_summary(f"[归档自动化] 阶段 {filename} 已结项: {summary}")
-    ctx.info("[OK] 归档完成。")
+    ctx.update_session_summary(f"[archive automation] EN {filename} closed: {summary}")
+    ctx.info("[OK] Archive completed.")
     return True

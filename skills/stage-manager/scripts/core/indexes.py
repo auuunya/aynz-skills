@@ -2,13 +2,13 @@ import re
 
 
 def rewrite_stages_index(ctx, current_stage=None):
-    """重建 STAGES.md 阶段列表，并重算当前/其他/归档标签。"""
+    """EN STAGES.md EN，ENtop /EN/EN。"""
     ctx.ensure_structure()
     existing = ctx.read_text(ctx.cfg.stages_index)
 
     qs_match = re.search(r"(^---\n\n## Quick Status.*$)", existing, re.M | re.S)
     quick_status = qs_match.group(1) if qs_match else (
-        f"---\n\n## Quick Status\n- [HEARTBEAT] Init\n- [LAST_SESSION] None记录\n"
+        f"---\n\n## Quick Status\n- [HEARTBEAT] Init\n- [LAST_SESSION] NoneEN\n"
         f"- Last sync: {ctx.now_datetime()} | User: {ctx.get_sys_user()} | Version: {ctx.get_git_info()}\n"
     )
 
@@ -16,7 +16,7 @@ def rewrite_stages_index(ctx, current_stage=None):
     archived_files = ctx.list_md_files(ctx.cfg.archive_exec_dir)
 
     if not current_stage:
-        old = re.search(r"`\.stages/stages/(stage-\d+-.*?\.md)`（当前阶段）", existing)
+        old = re.search(r"`\.stages/stages/(stage-\d+-.*?\.md)`（ENtop EN）", existing)
         if old and old.group(1) in active_files:
             current_stage = old.group(1)
     if not current_stage and active_files:
@@ -29,11 +29,11 @@ def rewrite_stages_index(ctx, current_stage=None):
     if active_files:
         ordered = [current_stage] + [f for f in active_files if f != current_stage] if current_stage else active_files
         for filename in ordered:
-            tag = "当前阶段" if filename == current_stage else "其他阶段"
+            tag = "ENtop EN" if filename == current_stage else "EN"
             lines.append(f"{idx}. `.stages/stages/{filename}`（{tag}）\n")
             idx += 1
     for filename in archived_files:
-        lines.append(f"{idx}. `.stages/archive/stages/{filename}`（已归档）\n")
+        lines.append(f"{idx}. `.stages/archive/stages/{filename}`（EN）\n")
         idx += 1
 
     lines.append("\n" + quick_status.strip("\n") + "\n")
@@ -41,7 +41,7 @@ def rewrite_stages_index(ctx, current_stage=None):
 
 
 def update_heartbeat(ctx):
-    """仅刷新 STAGES.md 的统计、Recent sessions和Last sync元数据。"""
+    """EN STAGES.md EN、Recent sessionsENLast syncEN。"""
     ctx.ensure_structure()
     stats = ctx.get_project_stats()
     session = ctx.get_last_session_text()
@@ -65,7 +65,7 @@ def update_heartbeat(ctx):
 
 
 def update_adr_index(ctx, clean_msg: str, stage_file: str, is_archive: bool = False) -> str:
-    """向 ADRS.md 追加Decision Index项，同时更新总数和Last updated时间。"""
+    """EN ADRS.md ENDecision IndexEN，ENLast updatedEN。"""
     ctx.ensure_structure()
     lines = ctx.read_text(ctx.cfg.adr_index).splitlines(True)
     count = ctx.count_adrs_from_index()
@@ -90,14 +90,14 @@ def update_adr_index(ctx, clean_msg: str, stage_file: str, is_archive: bool = Fa
 
 
 def update_session_summary(ctx, text: str):
-    """向 STAGE_SESSIONS.md 头部写入会话快照，并裁剪历史上限。"""
+    """EN STAGE_SESSIONS.md ENsession snapshot，EN。"""
     ctx.ensure_structure()
     clean = ctx.clean_summary_text(text)
     active_file, _ = ctx.get_latest_stage_info()
     now = ctx.now_datetime()
 
     lines = ctx.read_text(ctx.cfg.session_file).splitlines(True)
-    entry = f"### [{now}] Stage: {active_file or 'Global'}\n- **会话快照**: {clean}\n\n"
+    entry = f"### [{now}] Stage: {active_file or 'Global'}\n- **session snapshot**: {clean}\n\n"
 
     insert_idx = next((i + 1 for i, line in enumerate(lines) if "Session Summaries" in line), -1)
     if insert_idx != -1:
@@ -106,7 +106,7 @@ def update_session_summary(ctx, text: str):
         lines.append(entry)
 
     for index, line in enumerate(lines):
-        if line.startswith("- Recent Records") or line.startswith("- None活动记录"):
+        if line.startswith("- Recent Records") or line.startswith("- NoneEN"):
             lines[index] = f"- Recent Records: [{now}] {clean[:60]}...\n"
             break
 

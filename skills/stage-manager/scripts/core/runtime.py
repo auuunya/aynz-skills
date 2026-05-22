@@ -272,7 +272,7 @@ def ensure_structure():
             cfg.stages_index,
             lambda: (
                 STRINGS["stages_index_head"] + "\n---\n\n## Quick Status\n"
-                f"- [HEARTBEAT] Init\n- [LAST_SESSION] None记录\n"
+                f"- [HEARTBEAT] Init\n- [LAST_SESSION] NoneEN\n"
                 f"- Last sync: {now_datetime()} | User: {get_sys_user()} | Version: {get_git_info()}\n"
             ),
         ),
@@ -282,7 +282,7 @@ def ensure_structure():
         ),
         (
             cfg.session_file,
-            lambda: STRINGS["sessions_head"] + "\n---\n\n## Recent Records\n- None活动记录\n",
+            lambda: STRINGS["sessions_head"] + "\n---\n\n## Recent Records\n- NoneEN\n",
         ),
         (cfg.backlog_file, lambda: STRINGS["backlogs_head"]),
     ]

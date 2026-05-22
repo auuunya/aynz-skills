@@ -2,7 +2,7 @@ import re
 
 
 def collect_dashboard_data(ctx, mode: str, file_target=None):
-    """收集 dashboard 所需数据，不直接输出也不刷新索引。"""
+    """Collect dashboard data without direct output or index refresh."""
     filename, filepath = ctx.resolve_stage_file(file_target)
     data = {
         "stats": ctx.get_project_stats_dict(),
@@ -13,7 +13,7 @@ def collect_dashboard_data(ctx, mode: str, file_target=None):
         data["current_stage"] = filename
         data["progress"] = ctx.calculate_progress(filepath)
         data["pending_tasks"] = ctx.get_pending_tasks(filepath)
-    data["recent_sessions"] = re.findall(r"- \*\*会话快照\*\*: (.*?)\n", ctx.read_text(ctx.cfg.session_file))[:3]
+    data["recent_sessions"] = re.findall(r"- \*\*session snapshot\*\*: (.*?)\n", ctx.read_text(ctx.cfg.session_file))[:3]
     data["recent_adrs"] = re.findall(r"^\d+\. (\[ADRS-\d+\].*?)$", ctx.read_text(ctx.cfg.adr_index), re.M)[-3:]
     if mode == "full":
         data["backlog_count"] = len(re.findall(r"^\s*-\s*\[ \]", ctx.read_text(ctx.cfg.backlog_file), re.M))
@@ -23,7 +23,7 @@ def collect_dashboard_data(ctx, mode: str, file_target=None):
 
 
 def render_dashboard_json(ctx, data):
-    """将 dashboard 数据整理为 JSON 输出载荷。"""
+    """Format dashboard data into JSON payload."""
     out = {"stats": data["stats"]}
     for key in ("current_stage", "progress", "recent_sessions", "recent_adrs",
                 "backlog_count", "skill_path", "asset_root"):
@@ -35,7 +35,7 @@ def render_dashboard_json(ctx, data):
 
 
 def render_dashboard_text(ctx, data):
-    """将 dashboard 数据格式化为控制台文本。"""
+    """Format dashboard data for console output."""
     mode = data["mode"]
     stats_str = data["stats_str"]
 
@@ -55,24 +55,24 @@ def render_dashboard_text(ctx, data):
         if pending:
             limit = 3 if mode == "full" else 5
             plabel = "Next tasks" if mode == "full" else "Pending tasks"
-            ctx.info(f"\n [{plabel}] (前{limit}条):")
+            ctx.info(f"\n [{plabel}] (top {limit} items):")
             for task in pending[:limit]:
                 ctx.info(f"  [ ] {task.strip()}")
     elif mode == "full":
-        ctx.info(" [Active stage] 无Active stage")
+        ctx.info(" [Active stage] No active stage")
 
     sessions = data.get("recent_sessions", [])
     if sessions:
-        ctx.info(f"\n [{'Memory anchors' if mode == 'full' else 'Recent sessions'}] {'Recent sessions快照' if mode == 'full' else '(最近3条)'}:")
+        ctx.info(f"\n [{'Memory anchors' if mode == 'full' else 'Recent sessions'}] {'Recent sessionssnapshot' if mode == 'full' else '(latest 3)'}:")
         trunc = 100 if mode == "full" else 80
         for session in sessions[:3]:
             ctx.info(f"  > {session[:trunc]}{'...' if len(session) > trunc else ''}")
     elif mode == "full":
-        ctx.info("\n [Memory anchors] None历史快照。")
+        ctx.info("\n [Memory anchors] NoneENsnapshot。")
 
     adrs = data.get("recent_adrs", [])
     if adrs:
-        ctx.info("\n [Recent decisions] (最近3条):" if mode == "brief" else "\n [Recent decisions]:")
+        ctx.info("\n [Recent decisions] (latest 3):" if mode == "brief" else "\n [Recent decisions]:")
         for adr in adrs[-3:]:
             ctx.info(f"  * {adr.strip()}")
 
@@ -90,7 +90,7 @@ def render_dashboard_text(ctx, data):
 
 
 def render_dashboard(ctx, mode: str = "full", file_target=None) -> bool:
-    """统一渲染 dashboard，并在结束后刷新 heartbeat。"""
+    """Render dashboard and refresh heartbeat at the end."""
     data = collect_dashboard_data(ctx, mode, file_target)
     if ctx.json_mode:
         render_dashboard_json(ctx, data)
