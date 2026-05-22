@@ -6,6 +6,7 @@ A curated open-source skill collection for AI agents.
 
 - `skills/whoami` — build an Agent-callable KYC knowledge base via conversation
 - `skills/stage-manager` — stage planning, execution tracking, ADR logging, and archive gating
+- `skills/tdd-spec-loop` — turn requirements into an AI-operable TDD feedback environment
 
 ## Structure
 
@@ -13,7 +14,8 @@ A curated open-source skill collection for AI agents.
 aynz-skills/
 ├── skills/
 │   ├── whoami/
-│   └── stage-manager/
+│   ├── stage-manager/
+│   └── tdd-spec-loop/
 └── README.md
 ```
 
