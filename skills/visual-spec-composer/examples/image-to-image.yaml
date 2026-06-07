@@ -1,0 +1,141 @@
+version: canonical
+
+task:
+  goal: generate_image
+  task_type: image_edit
+  use_case: product_visual
+  intent_summary: '基于已有产品实拍图保留产品外形和角度，重做为高端黑金广告视觉，并借参考图的戏剧化光线氛围。'
+input_mode:
+  type: mixed
+  source_images:
+  - product_photo
+  reference_images:
+  - lighting_ref
+canvas:
+  aspect_ratio: '4:3'
+  orientation: landscape
+  size_preference: optional
+  composition_mode: image_edit
+layout:
+  block_count: 1
+  skeleton: centered_hero
+  reading_flow: left_to_right
+  balance: centered
+  spacing_style: seamless
+  block_relation: single_subject
+blocks:
+- id: hero_product
+  role: hero
+  subject: 指定产品
+  scene: 黑金广告背景
+  emphasis: 保留产品造型与高级质感
+  camera: preserve original angle
+  transition_to_next: optional
+style:
+  genre: commercial
+  realism: photographic
+  palette: black_gold
+  lighting: hard_light
+  texture: glossy
+  detail_density: medium
+  mood: premium
+  transition_system: optional
+constraints:
+  must_have:
+  - preserve product identity
+  - preserve original camera angle
+  must_avoid:
+  - changing product shape
+  - cluttered props
+  text_policy:
+    mode: none
+    text_area_position: optional
+    text_area_priority: low
+  brand_constraints: []
+references:
+- id: source_product
+  type: subject
+  role: 原图，负责主体身份与角度
+  preserve:
+  - subject_identity
+  - silhouette
+  - camera_angle
+  change:
+  - background
+  - lighting_style
+  ignore:
+  - original_background
+  ownership:
+    fields:
+    - subject
+    - camera
+  priority: 1
+- id: ref_black_gold
+  type: style
+  role: 参考图，只提供光线、色调与广告氛围
+  preserve:
+  - palette
+  - lighting
+  - mood
+  change: []
+  ignore:
+  - subject
+  - exact_layout
+  ownership:
+    fields:
+    - palette
+    - lighting
+    - mood
+  priority: 2
+reference_priority:
+  subject: source_product
+  composition: source_product
+  palette: ref_black_gold
+  lighting: ref_black_gold
+  texture: ref_black_gold
+generation_policy:
+  execution_mode: one_shot
+  complexity_level: medium
+  small_model_mode: false
+  priority_order:
+  - preserve product identity
+  - premium black-gold mood
+  - clean ad background
+  edit_focus:
+  - background replacement
+  - lighting upgrade
+  fallback_strategy:
+  - reduce background complexity
+  - keep only black-gold palette and one key light direction
+outputs:
+  brief_ready: true
+  canonical_vgs_ready: true
+  render_views:
+  - full
+  - compact
+notes:
+  warnings: []
+  open_questions: []
+capabilities:
+- name: style_transfer
+  version: '1.0'
+  enabled: true
+  params:
+    source: ref_black_gold
+    targets:
+    - palette
+    - lighting
+    - mood
+- name: inpaint
+  version: '1.0'
+  enabled: false
+  note: 声明但本任务不启用——保留产品原始形体，不做局部重绘
+metadata:
+  spec_id: vgs-example-image-edit
+  created_at: '2026-06-07T00:00:00+00:00'
+  author: visual-spec-composer
+  provenance:
+    source_intent: '基于已有产品实拍图保留产品外形和角度，重做为高端黑金广告视觉，并借参考图的戏剧化光线氛围。'
+    derivation_chain:
+    - step: canonical_vgs
+      timestamp: '2026-06-07T00:00:00+00:00'

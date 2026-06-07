@@ -1,0 +1,83 @@
+version: canonical
+
+task:
+  goal: generate_image
+  task_type: single_frame
+  use_case: kv
+  intent_summary: '一张 16:9 的科技品牌主视觉，右侧悬浮智能设备，左侧留标题区，整体高级冷蓝电影感。'
+input_mode:
+  type: text
+  source_images: []
+  reference_images: []
+canvas:
+  aspect_ratio: '16:9'
+  orientation: landscape
+  size_preference: optional
+  composition_mode: single_frame
+layout:
+  block_count: 1
+  skeleton: left_visual_right_text
+  reading_flow: left_to_right
+  balance: right_heavy
+  spacing_style: seamless
+  block_relation: single_subject
+blocks:
+- id: hero_main
+  role: hero
+  subject: 一台悬浮智能设备
+  scene: 极简科技空间背景
+  emphasis: 设备轮廓、材质反射与悬浮感
+  camera: product hero shot
+  transition_to_next: optional
+style:
+  genre: commercial
+  realism: semi_realistic
+  palette: cool_blue
+  lighting: volumetric_light
+  texture: clean_polished
+  detail_density: medium
+  mood: premium
+constraints:
+  must_have:
+  - left title area
+  - clear product silhouette
+  must_avoid:
+  - fake text
+  - cluttered background
+  text_policy:
+    mode: reserve_area
+    text_area_position: left
+    text_area_priority: high
+  brand_constraints: []
+references: []
+reference_priority: {}
+generation_policy:
+  execution_mode: one_shot
+  complexity_level: low
+  small_model_mode: false
+  priority_order:
+  - product clarity
+  - premium mood
+  - clean title area
+  edit_focus: []
+  fallback_strategy:
+  - simplify background
+  - reduce secondary reflections
+outputs:
+  brief_ready: true
+  canonical_vgs_ready: true
+  render_views:
+  - full
+  - compact
+notes:
+  warnings: []
+  open_questions: []
+metadata:
+  spec_id: vgs-example-single-frame
+  created_at: '2026-06-07T00:00:00+00:00'
+  author: visual-spec-composer
+  provenance:
+    source_intent: '一张 16:9 的科技品牌主视觉，右侧悬浮智能设备，左侧留标题区，整体高级冷蓝电影感。'
+    derivation_chain:
+    - step: canonical_vgs
+      timestamp: '2026-06-07T00:00:00+00:00'

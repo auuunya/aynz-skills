@@ -1,26 +1,12 @@
-# aynz-skills
+# AynZ Skills
 
-A curated open-source skill collection for AI agents.
+AynZ 核心技能仓库。
 
-## Included Skills
+## 技能列表
 
-- `skills/whoami` — build an Agent-callable KYC knowledge base via conversation
-- `skills/stage-manager` — stage planning, execution tracking, ADR logging, and archive gating
-- `skills/tdd-spec-loop` — turn requirements into an AI-operable TDD feedback environment
-
-## Structure
-
-```text
-aynz-skills/
-├── skills/
-│   ├── whoami/
-│   ├── stage-manager/
-│   └── tdd-spec-loop/
-└── README.md
-```
-
-## Conventions
-
-- Each skill entrypoint is `SKILL.md`
-- Frontmatter should include: `name`, `description`, `version`
-- Optional `SKILL.override.md` for repo-level constraints
+| 技能 | 用途 |
+|---|---|
+| whoami/ | 身份认知与角色扮演 |
+| stage-manager/ | 舞台管理（多角色调度） |
+| tdd-spec-loop/ | TDD 规格驱动循环 |
+|visual-spec-composer| Visual|

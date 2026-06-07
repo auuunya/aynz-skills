@@ -1,0 +1,117 @@
+version: canonical
+
+task:
+  goal: generate_image
+  task_type: multi_block
+  use_case: collage
+  intent_summary: '一张 16:9 的未来科技拼贴主视觉，上 2 下 3 共 5 块，五个主题统一在冷蓝电影感科幻风格下，并由光线自然过渡。'
+input_mode:
+  type: text
+  source_images: []
+  reference_images: []
+canvas:
+  aspect_ratio: '16:9'
+  orientation: landscape
+  size_preference: optional
+  composition_mode: multi_block
+layout:
+  block_count: 5
+  skeleton: top_2_bottom_3
+  reading_flow: left_to_right
+  balance: even
+  spacing_style: seamless
+  block_relation: same_theme_variants
+blocks:
+- id: hero_city
+  role: hero
+  subject: 未来城市天际线
+  scene: 夜景高楼与数字光流
+  emphasis: 城市规模感与科技密度
+  camera: wide establishing
+  transition_to_next: 光线向右延展
+- id: support_traffic
+  role: support
+  subject: 智能交通系统
+  scene: 自动驾驶车辆与高架交通网络
+  emphasis: 流线型速度感
+  camera: dynamic urban view
+  transition_to_next: 光线向下衔接
+- id: support_robot
+  role: support
+  subject: 机器人服务
+  scene: 智能服务终端与人机互动
+  emphasis: 亲和但先进
+  camera: medium shot
+  transition_to_next: 边缘粒子连接
+- id: support_energy
+  role: support
+  subject: 绿色能源
+  scene: 风能太阳能设施与城市融合
+  emphasis: 清洁、可持续
+  camera: wide shot
+  transition_to_next: 蓝绿色能量线串联
+- id: support_digital
+  role: support
+  subject: 数字生活
+  scene: 智能家居与透明交互界面
+  emphasis: 便利与未来感
+  camera: interior future lifestyle
+  transition_to_next: optional
+style:
+  genre: cinematic
+  realism: semi_realistic
+  palette: cool_blue
+  lighting: neon_light
+  texture: clean_polished
+  detail_density: medium
+  mood: epic
+  transition_system: light_stream_connection
+constraints:
+  must_have:
+  - unified sci-fi visual language
+  - clear top 2 bottom 3 structure
+  - smooth transitions between blocks
+  must_avoid:
+  - fake text
+  - unrelated styles per block
+  - over-cluttered collage edges
+  text_policy:
+    mode: none
+    text_area_position: optional
+    text_area_priority: low
+  brand_constraints: []
+references: []
+reference_priority: {}
+generation_policy:
+  execution_mode: two_stage
+  complexity_level: high
+  small_model_mode: false
+  priority_order:
+  - layout readability
+  - theme unity
+  - transition smoothness
+  edit_focus: []
+  fallback_strategy:
+  - reduce block detail
+  - collapse 5 themes into 3 macro-clusters
+  - switch to grid_2x2 or center_hero_four_support
+outputs:
+  brief_ready: true
+  canonical_vgs_ready: true
+  render_views:
+  - full
+  - compact
+  - minimal
+notes:
+  warnings:
+  - 5-block collage may be unstable in one-shot generation
+  open_questions: []
+metadata:
+  spec_id: vgs-example-multi-block
+  created_at: '2026-06-07T00:00:00+00:00'
+  author: visual-spec-composer
+  provenance:
+    source_intent: '一张 16:9 的未来科技拼贴主视觉，上 2 下 3 共 5 块，五个主题统一在冷蓝电影感科幻风格下，并由光线自然过渡。'
+    derivation_chain:
+    - step: canonical_vgs
+      timestamp: '2026-06-07T00:00:00+00:00'
