@@ -25,7 +25,7 @@ not_for:
 
 ## 使用约定
 
-- 工作目录以本 Skill 根目录为准：`skills/visual-spec-composer/`
+- 工作目录以本 Skill 根目录为准：`./`
 - 先读 `SKILL.md`，再按索引按需读取 `references/`；不要一次性展开全部文件
 - 若任务是连续画面 / 分镜 / 系列图，转入 `references/storyboard-mode.md`，用 Sequence Wrapper 包一组 VGS
 
@@ -35,8 +35,8 @@ not_for:
 
 | 步骤 | 动作 | 输入 → 输出 | 参考 |
 | ---- | ---- | ---------- | ---- |
-| 1.1 | 判定 `input_mode`（text / image / mixed）与任务路由（single_frame / multi_block / image_edit / storyboard_sequence） | 用户原始需求 → `input_mode` + `task_type` | `interview-tree.md`, `storyboard-mode.md` |
-| 1.2 | 按访谈树逐轮提问，一次一问，附推荐答案；能从上下文推断的不重复问 | 不完整字段 → 逐轮填充 VGS 字段 | `interview-tree.md` |
+| 1.1 | 判定 `input_mode`（text / image / mixed）与任务路由（single_frame / multi_block / image_edit / storyboard_sequence） | 用户原始需求 → `input_mode` + `task_type` | `references/interview-tree.md`, `references/storyboard-mode.md` |
+| 1.2 | 按访谈树逐轮提问，一次一问，附推荐答案；能从上下文推断的不重复问 | 不完整字段 → 逐轮填充 VGS 字段 | `references/interview-tree.md` |
 | 1.3 | 输出 Human Brief 摘要，**等用户确认方向后再继续**；有异议则回到 1.2 | 部分字段 → Human Brief（方向确认） | — |
 
 **⏸ 检查点 A**：用户确认 Human Brief 方向 → 进入 Phase 2；有异议 → 回到 1.2 修订。
@@ -45,9 +45,9 @@ not_for:
 
 | 步骤 | 动作 | 输入 → 输出 | 参考 |
 | ---- | ---- | ---------- | ---- |
-| 2.1 | 单帧任务填写 Canonical VGS；多帧任务先定 Sequence Wrapper 再逐帧填写 | 确认方向 → Canonical VGS YAML | `vgs-schema.md`, `storyboard-mode.md` |
+| 2.1 | 单帧任务填写 Canonical VGS；多帧任务先定 Sequence Wrapper 再逐帧填写 | 确认方向 → Canonical VGS YAML | `references/vgs-schema.md`, `references/storyboard-mode.md` |
 | 2.2 | 对每个 reference 声明 ownership；冲突显式写入 conflict note | 多参考图 → `reference_priority` + `conflict_notes` | — |
-| 2.3 | 评估复杂度，选 one_shot / two_stage / multi_pass / brief_only；**验证降阶策略可行性** | VGS → `execution_mode` + `fallback_strategy` | `vgs-schema.md §6` |
+| 2.3 | 评估复杂度，选 one_shot / two_stage / multi_pass / brief_only；**验证降阶策略可行性** | VGS → `execution_mode` + `fallback_strategy` | `references/vgs-schema.md §6` |
 
 **⏸ 检查点 B**：必填字段完整性检查（`task` / `canvas` / `layout` / `style` / `constraints`） → 进入 Phase 3。
 
@@ -55,8 +55,8 @@ not_for:
 
 | 步骤 | 动作 | 输入 → 输出 | 参考 |
 | ---- | ---- | ---------- | ---- |
-| 3.1 | 运行校验：运行 `validate_vgs.py` 校验 VGS；按需降阶 | VGS → 校验报告 + 降阶建议 | `validate_vgs.py` |
-| 3.2 | 自检质量清单；依次交付 Human Brief → Canonical VGS → Render Views | VGS → Full / Compact / Minimal Render Views | `quality-checklist.md` |
+| 3.1 | 运行校验：运行 `scripts/validate_vgs.py` 校验 VGS；按需降阶 | VGS → 校验报告 + 降阶建议 | `scripts/validate_vgs.py` |
+| 3.2 | 自检质量清单；依次交付 Human Brief → Canonical VGS → Render Views | VGS → Full / Compact / Minimal Render Views | `references/quality-checklist.md` |
 | 3.3 | 若用户未指定保存位置，默认输出到 `.vgs-output/{theme-name}/` | 文件保存确认 | — |
 
 ## 关键决策规则
@@ -87,10 +87,7 @@ not_for:
 | | `references/common-pitfalls.md` | 新用户首次使用或排查常见错误时 |
 | **脚本** | `scripts/validate_vgs.py` | Phase 3 校验 VGS 时 |
 | | `scripts/assemble_modules.py` | 多模块深度合并时 |
-| **上手 & 示例** | `QUICKSTART.md` | 新用户 3 分钟快速上手 |
-| | `TROUBLESHOOTING.md` | 遇到错误需要排错时 |
-| | `examples/*.md` | 需要 single-frame / multi-block / image-to-image 示例时 |
-| | `test-prompts.json` | 本地验证 SKILL 效果时 |
+| **示例** | `examples/` | 需要 single-frame / multi-block / image-to-image 示例时 |
 
 ---
 
